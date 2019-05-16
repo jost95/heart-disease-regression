@@ -4,6 +4,12 @@ library(pscl)
 
 # --------- INITIALIZE DATA SET -----------
 
+
+
+plot(data1$target ~ data1$age) 
+lines(ksmooth(data1$age, data1$target, bandwidth = 20))
+
+
 # Categorize gender
 data$sex <- factor(data$sex, levels = c(0, 1),
                      labels = c("Female","Male"))
@@ -42,7 +48,7 @@ data$thal <- factor(data$thal, levels = c(0, 1, 2, 3), labels = c("Normal", "Nor
 droplevels(data$thal)
 
 # Categorize the target variable
-data$target <- factor(data$target, levels =c(0,1), labels = c("No", "Yes"))
+#data$target <- factor(data$target, levels =c(0,1), labels = c("No", "Yes"))
 
 # Categorize the systonic blood pressure (low, medium high)
 lowThreshold = summary(data$trestbps)[2]
@@ -90,6 +96,16 @@ pR2(bestFullModel)
 pR2(bestDiyProModel)
 pR2(bestDiyModel)
 
+# pairs plot data used
+
+datafullmodel <- data.frame(data$age, data$sex, data$cp, data$exang, data$oldpeak,
+                   data$ca, data$combined_thal, data$target)
+datadiy <- data.frame(data$age, data$sex, data$exang , data$thalach, data$target)
+
+pairs(datafullmodel)
+pairs(datadiy)
+
+
 fullPrecitions <- predict(bestFullModel, data, type = "response")
 
 fullPrecitions <- factor(fullPrecitions < 0.5,
@@ -106,14 +122,42 @@ diyPredictions <- factor(diyPredictions < 0.5,
 
 table(diyPredictions, data$target)
 
-testPerson1 <- data.frame(age = "Old", sex = "Male", combined_cp = "No pain", thalach = 200, exang = "No")
-testPerson2 <- data.frame(age = "Young", sex = "Female", combined_cp = "No pain", thalach = 200, exang = "No")
+testPerson1 <- data.frame(age = "Old", sex = "Female", combined_cp = "No pain", thalach = 165, exang = "No")
+testPerson2 <- data.frame(age = "Young", sex = "Female", combined_cp = "No pain", thalach = 165, exang = "No")
 
-testPerson3 <- data.frame(age = "Old", sex = "Female", cp = "Asymptotic", thalach = 100, exang = "No", oldpeak=0.8, ca=1, combined_thal="Reversible defect")
+testPerson3 <- data.frame(age = "Old", sex = "Female", cp = "Asymptotic", thalach = 165, exang = "No", oldpeak=0.8, ca=1, combined_thal="Reversible defect")
 testPerson4 <- data.frame(age = "Young", sex = "Female", cp = "Atypical angina", thalach = 165, exang = "No", oldpeak=0.8, ca=1, combined_thal="Reversible defect")
 
 predict(bestDiyModel, testPerson1, type="response")
 predict(bestDiyModel, testPerson2, type="response")
 
 with(data = data, 
-     plot(age ~ thalach))
+     plot(sex ~ target))
+
+summary(datafullmodel)
+
+# Interaktionstermer? - könsspecifika modeller? - åldersspecifika modeller?
+
+hilo1 <- predict(bestFullModel, data, type = "response")
+
+hilo1 <- factor(hilo1 < 0.5,
+                    levels = c(TRUE, FALSE),
+                    labels = c("No guess", "Yes guess"))
+
+table(hilo1, data$target)
+
+hilo2 <- predict(bestDiyProModel, data, type = "response")
+
+hilo2 <- factor(hilo2 < 0.5,
+                levels = c(TRUE, FALSE),
+                labels = c("No guess", "Yes guess"))
+
+table(hilo2, data$target)
+
+
+#---------------------EXTRAS AFTER Q:s---------------
+
+datamale <- data.frame()
+
+
+
