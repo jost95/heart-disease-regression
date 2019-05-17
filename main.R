@@ -157,7 +157,59 @@ table(hilo2, data$target)
 
 #---------------------EXTRAS AFTER Q:s---------------
 
-datamale <- data.frame()
+datamale <- data[which(data$sex=="Male"),]
+datafemale <- data[which(data$sex=="Female"),]
+
+datayoung <- data[which(data$age=="Young"),]
+dataold <- data[which(data$age=="Old"),]
+
+datamaleold <- datamale[which(datamale$age=="Old"),]
+datamaleyoung <- datamale[which(datamale$age=="Young"),]
+datafemaleold <- datafemale[which(datafemale$age=="Old"),]
+datafemaleyoung <-  datafemale[which(datafemale$age=="Young"),]
+
+# model males
+fullModelmale = glm(target ~ age + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + combined_thal + oldpeak, data = datamale, family = "binomial")
+bestFullModelmale = step(fullModelmale, k = log(nrow(datamale)), direction = "both")
+
+summary(bestFullModelmale)
+
+plot(bestFullModelmale, which = 4)
+abline(h = 4/nrow(datamale))
+
+# sense and spec male
+
+datamale$hilo <- predict(bestFullModelmale, datamale, type = "response")
+
+datamale$hilo <- factor(datamale$hilo < 0.5,
+                    levels = c(TRUE, FALSE),
+                    labels = c("Guess false", "Guess true"))
+
+table(datamale$hilo, datamale$target)
+(sensemale <- 92/(92+22))
+(specemale <- 74/(74+19))
 
 
+# model females
+fullModelfemale = glm(target ~ chol + thalach + oldpeak + ca + combined_thal, data = datafemale, family = "binomial")
+bestFullModelfemale = step(fullModelfemale, k = log(nrow(datafemale)), direction = "both")
 
+summary(bestFullModelfemale)
+
+plot(bestFullModelfemale, which = 4)
+abline(h = 4/nrow(datafemale))
+
+
+#sense and spec female
+datafemale$hilo <- predict(bestFullModelfemale, datafemale, type = "response")
+
+datafemale$hilo <- factor(datafemale$hilo < 0.5,
+                        levels = c(TRUE, FALSE),
+                        labels = c("Guess false", "Guess true"))
+
+table(datafemale$hilo, datafemale$target)
+
+(sensefemale <- 70/(70+2))
+(specefemale <- 14/(14+10))
+
+  
